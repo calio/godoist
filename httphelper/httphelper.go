@@ -17,10 +17,13 @@ type ActualHTTPHelper struct {
 
 func (a *ActualHTTPHelper) PostForm(uri string, data url.Values) (resp *http.Response, err error) {
 	return http.PostForm(uri, data)
-
 }
 
 func (a *ActualHTTPHelper) ResponseBodyAsBytes(resp *http.Response) ([]byte, error) {
+	if resp == nil {
+		return nil, errors.New("Nil response provided")
+	}
+
 	if resp.Body == nil {
 		return nil, errors.New("Nil response body")
 	}
