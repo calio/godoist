@@ -2,7 +2,7 @@ godoist
 =======
 
 [![Build Status](https://travis-ci.org/robdimsdale/godoist.svg?branch=master)](https://travis-ci.org/robdimsdale/godoist)
-[![Coverage Status](https://img.shields.io/coveralls/robdimsdale/godoist.svg)](https://coveralls.io/r/robdimsdale/godoist?branch=HEAD)
+[![Coverage Status](https://coveralls.io/repos/robdimsdale/godoist/badge.png?branch=HEAD)](https://coveralls.io/r/robdimsdale/godoist?branch=HEAD)
 
 Copyright © 2014, Robert Dimsdale. Licensed under [MIT License](https://github.com/robdimsdale/godoist/raw/master/LICENSE).
 
