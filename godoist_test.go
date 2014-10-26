@@ -12,41 +12,43 @@ import (
 )
 
 var (
-	c              godoist.Client
 	fakeHTTPHelper *fakeHTTP.FakeHTTPHelper
 	response       *http.Response
 )
 
 var _ = Describe("Godoist", func() {
-
 	BeforeEach(func() {
 		response = &http.Response{}
 		fakeHTTPHelper = &fakeHTTP.FakeHTTPHelper{}
 		godoist.HTTPHelper = fakeHTTPHelper
 		fakeHTTPHelper.PostFormReturns(response, nil)
-
-		client, err := godoist.NewClient("email", "password")
-		Expect(err).NotTo(HaveOccurred())
-		c = client
 	})
 
-	Context("With empty string as email", func() {
-		It("fails to create client", func() {
-			_, err := godoist.NewClient("", "password")
-			Expect(err).To(HaveOccurred())
+	Context("When creating client", func() {
+		Context("With empty string as email", func() {
+			It("returns an error", func() {
+				_, err := godoist.NewClient("", "password")
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("With empty string as password", func() {
+			It("returns an error", func() {
+				_, err := godoist.NewClient("email", "")
+				Expect(err).To(HaveOccurred())
+			})
 		})
 	})
 
-	Context("With empty string as password", func() {
-		It("fails to create client", func() {
-			_, err := godoist.NewClient("email", "")
-			Expect(err).To(HaveOccurred())
+	Context("With a successfully created client", func() {
+		var c godoist.Client
+		BeforeEach(func() {
+			client, err := godoist.NewClient("email", "password")
+			Expect(err).NotTo(HaveOccurred())
+			c = client
 		})
-	})
 
-	Context("With a valid email and password", func() {
 		Context("When performing login", func() {
-
 			Context("When posting form returns error", func() {
 				BeforeEach(func() {
 					fakeHTTPHelper.PostFormReturns(nil, errors.New("Error during login"))
@@ -119,9 +121,62 @@ var _ = Describe("Godoist", func() {
 					Expect(c.ApiToken()).To(Equal("some-api-token"))
 				})
 
-				It("does not return an error", func() {
+				It("returns without error", func() {
 					err := c.Login()
 					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+		})
+
+		Context("When performing ping", func() {
+			Context("When posting form returns error", func() {
+				BeforeEach(func() {
+					fakeHTTPHelper.PostFormReturns(nil, errors.New("Error during ping"))
+				})
+				It("fowards the error", func() {
+					_, err := c.Ping()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("When response status code is http.StatusUnauthorized", func() {
+				BeforeEach(func() {
+					response.StatusCode = http.StatusUnauthorized
+				})
+				It("returns an error", func() {
+					_, err := c.Ping()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("When response status code is http.StatusForbidden", func() {
+				BeforeEach(func() {
+					response.StatusCode = http.StatusForbidden
+				})
+				It("returns an error", func() {
+					_, err := c.Ping()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("When getting response body as bytes returns an error", func() {
+				BeforeEach(func() {
+					fakeHTTPHelper.ResponseBodyAsBytesReturns(nil, errors.New("Error converting response body to bytes"))
+				})
+				It("forwards the error", func() {
+					_, err := c.Ping()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("When ping succeeds succesfully", func() {
+				BeforeEach(func() {
+					fakeHTTPHelper.ResponseBodyAsBytesReturns([]byte("ping-result"), nil)
+				})
+				It("returns without error", func() {
+					result, err := c.Ping()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(result).To(Equal("ping-result"))
 				})
 			})
 		})
