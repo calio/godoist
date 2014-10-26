@@ -1,5 +1,6 @@
 language: go
 install:
+  - go get github.com/onsi/ginkgo/ginkgo
   - go get -v -t ./...
 script: ginkgo -r -race
 branches:
